@@ -4,8 +4,171 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>GMRF reporting workspace — prototype v0.1</title>
+<style>
+  :root {
+    --navy: #1b4f72;
+    --ink: #1c2833;
+    --muted: #5d6d7e;
+    --paper: #f4f7f8;
+    --card: #ffffff;
+    --teal: #148f77;
+    --gold: #b7950b;
+    --brick: #922b21;
+    --line: #d5d8dc;
+    --ok: #1e8449;
+    --warn: #b9770e;
+    --off: #7b241c;
+    --chip: #eaf2f8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Source Sans 3", "Segoe UI", Arial, sans-serif;
+    background: var(--paper); color: var(--ink); line-height: 1.45;
+  }
+  header.app {
+    background: var(--navy); color: #fff; padding: 14px 22px;
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  header.app h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: .02em; }
+  header.app .sub { font-size: 12px; opacity: .8; }
+  .roles { display: flex; gap: 6px; margin-left: auto; }
+  .roles button, .grant-pick button, button.act, button.ghost {
+    border: 0; cursor: pointer; font: inherit;
+  }
+  .roles button {
+    background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.35);
+    padding: 7px 12px; border-radius: 999px; font-size: 13px;
+  }
+  .roles button.on { background: #fff; color: var(--navy); font-weight: 600; }
+  .banner {
+    background: #fdebd0; color: #6e2c00; font-size: 12px; padding: 8px 22px;
+  }
+  main { padding: 18px 22px 48px; max-width: 1180px; margin: 0 auto; }
+  h2 { font-size: 18px; margin: 0 0 6px; }
+  .lede { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .grid { display: grid; gap: 14px; }
+  .cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .cols-2 { grid-template-columns: 1.2fr .8fr; }
+  @media (max-width: 900px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 14px; }
+  .kpis { display: flex; gap: 10px; flex-wrap: wrap; }
+  .kpi { background: var(--chip); border-radius: 10px; padding: 10px 12px; min-width: 140px; }
+  .kpi b { display: block; font-size: 18px; }
+  .kpi span { font-size: 11px; color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+       color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px; }
+  td { border-bottom: 1px solid var(--line); padding: 8px; vertical-align: top; }
+  .pill {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px;
+    background: var(--chip); color: var(--navy); font-weight: 600;
+  }
+  .pill.ok { background: #d5f5e3; color: var(--ok); }
+  .pill.off { background: #fadbd8; color: var(--off); }
+  .pill.warn { background: #fcf3cf; color: var(--warn); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  select, textarea, input[type="text"], input[type="number"] {
+    font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fff;
+  }
+  .chat {
+    display: flex; flex-direction: column; gap: 10px; min-height: 420px;
+  }
+  .bubble { max-width: 92%; padding: 10px 12px; border-radius: 12px; font-size: 14px; }
+  .bubble.bot { background: var(--chip); }
+  .bubble.me { background: #148f7714; margin-left: auto; border: 1px solid #148f7733; }
+  .bubble .who { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .composer { display: flex; gap: 8px; margin-top: 8px; }
+  .composer textarea { flex: 1; min-height: 64px; }
+  button.act { background: var(--navy); color: #fff; padding: 8px 14px; border-radius: 8px; }
+  button.act.teal { background: var(--teal); }
+  button.act.brick { background: var(--brick); }
+  button.ghost { background: transparent; border: 1px solid var(--line); padding: 8px 12px; border-radius: 8px; }
+  .mapbox { font-size: 12px; background: #f8f9f9; border-radius: 8px; padding: 8px; margin-top: 8px; }
+  .mapbox code { font-size: 11px; color: var(--navy); }
+  .hidden { display: none !important; }
+  .grant-pick { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .grant-pick button { background: #fff; border: 1px solid var(--line); padding: 8px 10px; border-radius: 10px; text-align: left; }
+  .grant-pick button.on { border-color: var(--teal); box-shadow: 0 0 0 2px #148f7730; }
+  .tiny { font-size: 12px; color: var(--muted); }
+  ul.clean { margin: 6px 0 0; padding-left: 18px; }
+  .score-ban {
+    border: 1px dashed var(--brick); color: var(--brick); font-size: 12px;
+    padding: 8px; border-radius: 8px; margin-top: 10px;
+  }
+</style>
 </head>
 <body>
-<p>placeholder</p>
+<header class="app">
+  <div>
+    <h1>GMRF reporting workspace</h1>
+    <div class="sub">Prototype v0.1 · dummy P1–P3 · not partner data · no resilience index</div>
+  </div>
+  <nav class="roles" aria-label="Surface">
+    <button data-view="grantee" class="on">Grantee conversation</button>
+    <button data-view="secret">Secretariat</button>
+    <button data-view="funder">Funder dashboard</button>
+  </nav>
+</header>
+<div class="banner">Fictional pilots only. CORE3 (“people more resilient”) stays off the dashboard until a person verifies shock + baseline/endline + comparison. AI maps; AI does not publish.</div>
+
+<main>
+  <section id="view-grantee">
+    <h2>Year-1 reporting conversation</h2>
+    <p class="lede">Asked in plain language. Race to Resilience labels stay in the mapping panel, not in the questions.</p>
+    <div class="grant-pick" id="grantPick"></div>
+    <div class="grid cols-2">
+      <div class="card">
+        <div class="chat" id="chat"></div>
+        <div class="composer">
+          <textarea id="answer" placeholder="Type in your own words. Or load the year-1 draft."></textarea>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="act" id="send">Send</button>
+            <button class="ghost" id="draft">Load draft</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Proposed mapping <span class="tiny">staff will verify</span></h3>
+        <div id="mapping" class="tiny">Answer the prompts. Suggested fields appear here.</div>
+        <div class="score-ban">No screen in this prototype computes Depth, Confidence, or an Increased Resilience Index.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-secret" class="hidden">
+    <h2>Verification queue</h2>
+    <p class="lede">Accept, edit, or send back. Nothing reaches the funder view while status is unverified. CORE3 stays locked on all three dummy cycles.</p>
+    <div id="queue" class="grid"></div>
+  </section>
+
+  <section id="view-funder" class="hidden">
+    <h2>Funder dashboard</h2>
+    <p class="lede">Pipeline and verified magnitude only. Filter the dummy portfolio. Indirect people and CORE3 candidates do not appear as impact.</p>
+    <div class="filters">
+      <select id="fPillar"><option value="">All pillars</option></select>
+      <select id="fCountry"><option value="">All countries</option></select>
+      <select id="fStatus"><option value="">All pipeline statuses</option></select>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="card" style="margin-top:14px;overflow:auto">
+      <table id="ftable">
+        <thead>
+          <tr>
+            <th>Grant</th><th>Pillar</th><th>Countries</th><th>Pipeline</th>
+            <th>Verified this cycle</th><th>CORE3</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="app.js"></script>
 </body>
 </html>
